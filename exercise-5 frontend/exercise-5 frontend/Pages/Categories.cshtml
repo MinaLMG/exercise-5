@@ -1,0 +1,147 @@
+﻿@page
+@model CategoryModel
+@{
+	ViewData["Title"] = "Categories";
+	ViewData["active"] = "Categories";
+	var x = "";
+}
+<div class="page-body categories">
+	<div class="page-body-elements">
+		<h1> Categories</h1>
+		@if (Model.Categories.Count > 0)
+		{
+
+			var index = 0;
+			<table class="table page-table">
+				<thead>
+					<tr>
+						<th scope="col" style="width: 55px;">#</th>
+						<th scope="col" class="name">Name</th>
+						<th scope="col" style="width: 130px;">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var category in Model.Categories)
+					{
+						index++;
+						<tr>
+							<td>@index</td>
+							<td>@category.Name</td>
+							<td class="flex">
+								<!-- Button trigger modal -->
+								<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=@("#editModal"+category.ID)
+								id=@("#editButton"+category.ID)>
+									<img class="action" src="~/Images/edit.png" alt="edit"></img>
+								</button>
+
+								<!-- Modal -->
+								<div class="modal fade" id=@("editModal"+category.ID) tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+									<div class="modal-dialog">
+										<div class="modal-content">
+											<form method="post" asp-page-handler="UpdateCategory" class="needs-validation" novalidate>
+												@*<form method="post" asp-page="/UpdateCategory/@category.ID">*@
+												<div class="modal-header">
+													<h5 class="modal-title">
+														@*id=@("exampleModalLabel"+category.ID)>*@
+														Editing a Category
+													</h5>
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+												</div>
+												<div class="modal-body edit">
+													<label for=@("name"+category.ID) class="form-label">Name</label>
+													<input type="text" class="form-control" id=@("name"+category.ID) name="name"
+												   value=@(Model.ID!=new Guid() && Model.ID==category.ID && Model.Open=="edit"?Model.Name:category.Name) required>
+													<input type="hidden" class="form-control" name="id" value="@category.ID" required>
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+													<button type="submit" class="btn btn-primary" onclick="return validateEditData(`@category.ID`)">Save changes</button>
+												</div>
+
+											</form>
+										</div>
+									</div>
+								</div>
+								<!-- Button trigger modal -->
+								<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target=@("#deleteModal"+category.ID)
+								id=@("deleteButton"+category.ID)>
+									<img class="action" src="~/Images/bin.png" alt="delete"></img>
+								</button>
+
+								<!-- Modal -->
+								<div class="modal fade" id=@("deleteModal"+category.ID)
+							 tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+									<div class="modal-dialog">
+										<div class="modal-content">
+											<form method="post" asp-page-handler="DeleteCategory" class="needs-validation" novalidate>
+												<input type="hidden" class="form-control" name="id" value="@category.ID">
+												<div class="modal-header">
+													<h5 class="modal-title">
+														Deleting a Category
+													</h5>
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+												</div>
+												<div class="modal-body">
+													Are you sure you want to delete the category <span class="delete-category">@category.Name</span> ?
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+													<button type="submit" class="btn btn-danger">Yes, Delete</button>
+												</div>
+											</form>
+										</div>
+									</div>
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+		else
+		{
+			<h1>No</h1>
+		}
+
+	</div>
+	<div class="page-body-actions">
+		<h4 class="text-center">New Category </h4>
+		<form method="post" asp-page-handler="AddCategory" class="needs-validation" novalidate>
+			<div class="mb-3">
+				<label for="name" class="form-label white">Name</label>
+				<input type="text" class="form-control" id="name" name="name" required value=@((Model.ID==new Guid() && !string.IsNullOrEmpty(@Model.Name))? Model.Name:"")>
+			</div>
+			<button type="submit" class="btn btn-primary" onclick="return validateAddData();">Add Category</button>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	function validateAddData() {
+		if ($("#name").val().trim() == "") {
+			swal.fire({ title: "Category Name", text: "Please enter category name .. it can't be empty !", "icon": "info" });
+			return false;
+		} else {
+			return true;
+		}
+	}
+	function validateEditData(id) {
+		if ($("#name" + id).val().trim() == "") {
+			swal.fire({ title: "Category Name", text: "Please enter category name .. it can't be empty !", "icon": "info" });
+			return false;
+		} else {
+			return true;
+		}
+	}
+	if (`@Model.ReqResult` == "success")
+		swal.fire({ title: "Success", text: `@Model.Msg`, "icon": "success" });
+	if (`@Model.ReqResult` == "failure")
+		swal.fire({ title: "Failed", text: `@Model.Msg`, "icon": "error" });
+	if (`@(Model.ID!=new Guid())` && `@Model.Open` == "edit") {
+		var el = document.getElementById(`@("editButton"+ Model.ID)`);
+		setTimeout(() => { el.click(); }, 10);
+	}
+	if (`@(Model.ID!=new Guid())` && `@Model.Open` == "delete") {
+		var el = document.getElementById(`@("deleteButton"+ Model.ID)`);
+		setTimeout(() => { el.click(); }, 10);
+	}
+</script>

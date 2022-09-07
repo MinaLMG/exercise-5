@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option csharp_namespace = "server";
+
+package Recipes;
+
+service Recipes {
+  rpc ListRecipes (VoidRecipe) returns (RecipesList);
+  rpc CreateRecipe (RecipeToAdd) returns (Recipe);
+  rpc EditRecipe (Recipe) returns (Recipe);
+  rpc DeleteRecipe (RecipeToDelete) returns (Recipe);
+}
+
+
+message Recipe {
+	string id = 1 ;
+	string title = 2 ;
+	repeated string instructions = 3;
+	repeated string ingredients = 4;
+	repeated string categories = 5;
+}
+
+message VoidRecipe {
+}
+
+message RecipeToAdd {
+	string title = 1;
+}
+
+message RecipeToDelete {
+	string id = 1;
+}
+
+message RecipesList {
+	repeated Recipe recipes = 1;
+}
