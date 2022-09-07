@@ -1,5 +1,4 @@
-﻿using exercise_5_frontend.Models;
-using Grpc.Net.Client;
+﻿using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text;
@@ -22,15 +21,15 @@ namespace exercise_5_frontend.Pages
         public string Name { get; set; }
         [BindProperty(SupportsGet = true)]
         public string Open { get; set; }
-        private readonly ILogger<IndexModel> _logger;
-        private readonly IConfiguration Configuration;
+        private readonly ILogger<IndexModel> logger;
+        private readonly IConfiguration configuration;
         private readonly GrpcChannel channel;
         private readonly CategoriesClient client;
 
         public CategoryModel(ILogger<IndexModel> logger, IConfiguration configuration)
         {
-            _logger = logger;
-            Configuration = configuration;
+            logger = logger;
+            configuration = configuration;
             channel = GrpcChannel.ForAddress("https://localhost:5500");
             client = new CategoriesClient(channel);
 
@@ -56,39 +55,19 @@ namespace exercise_5_frontend.Pages
         }
         public async Task<IActionResult> OnPostUpdateCategory()
         {
-            Category toEdit = new Category(Name);
-            toEdit.Id = ID;
-            var temp = JsonSerializer.Serialize(toEdit);
-            var res = await HttpClient.PutAsync(Configuration["BaseUrl"] + "categories/" + ID, new StringContent(temp, Encoding.UTF8, "application/json"));
-            if ((int)res.StatusCode == 200)
-            {
-                //ReqResult = "success";
-                //Msg = "the category has been updated successfully";
-                return Redirect("/Categories?ReqResult=success&Msg=the category has been updated successfully");
-            }
-            else
-            {
-                //ReqResult = "failure";
-                //Msg = "something went wrong with your request .. review your data and try again";
-                //Open = "edit";
-                return Redirect("/Categories?ReqResult=failure&Msg=something went wrong with your request .. review your data and try again&name=" + Name + "&id=" + ID + "&open=edit");
-            }
+            server.Category toEdit = new ();
+            toEdit.Id = ID.ToString();
+            toEdit.Name = Name;
+            var reply = await client.EditCategoryAsync(toEdit);
+            return Redirect("/Categories?ReqResult=success&Msg=the category has been updated successfully");
         }
         public async Task<IActionResult> OnPostDeleteCategory()
         {
-            var res = await HttpClient.DeleteAsync(Configuration["BaseUrl"] + "categories/" + ID);
-            if ((int)res.StatusCode == 200)
-            {
-                //ReqResult = "success";
-                //Msg = "the category has been deleted successfully";
-                return Redirect("/Categories?ReqResult=success&Msg=the category has been deleted successfully");
-            }
-            else
-            {
-                //ReqResult = "failure";
-                //Msg = "something went wrong with your request .. you can retry after some seconds";
-                return Redirect("/Categories?ReqResult=failure&Msg=something went wrong with your request .. you can retry after some seconds&id=" + ID + "&open=delete");
-            }
+            server.CategoryToDelete toDelete = new();
+            toDelete.Id = ID.ToString();
+            var reply = await client.DeleteCategoryAsync(toDelete);
+            return Redirect("/Categories?ReqResult=success&Msg=the category has been deleted successfully");
+           
         }
     }
 }

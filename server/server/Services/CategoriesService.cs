@@ -38,7 +38,7 @@ namespace server.Services
             {
                 await LoadData();
             }
-            Category toAdd =new Category();
+            Category toAdd = new Category();
             toAdd.Name = request.Name;
             toAdd.Id = Guid.NewGuid().ToString();
             Categories.Add(toAdd);
@@ -48,14 +48,35 @@ namespace server.Services
             return toAdd;
         }
 
-        public override Task<Category> DeleteCategory(CategoryToDelete request, ServerCallContext context)
+        public override async Task<Category> DeleteCategory(CategoryToDelete request, ServerCallContext context)
         {
-            return base.DeleteCategory(request, context);
+            if (!isLoaded)
+            {
+                await LoadData();
+            }
+            Category toDelete = Categories.Single(x => x.Id == request.Id);
+            CategoriesMap.Remove(toDelete.Name);
+            CategoriesMap.Remove(toDelete.Id);
+            Categories.Remove(toDelete);
+            this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
+            //To Do : remove category from recipes
+            return toDelete;
         }
 
-        public override Task<Category> EditCategory(Category request, ServerCallContext context)
+        public override async Task<Category> EditCategory(Category request, ServerCallContext context)
         {
-            return base.EditCategory(request, context);
+            if (!isLoaded)
+            {
+                await LoadData();
+            }
+            Category toEdit = Categories.Single(x => x.Id == request.Id);
+            CategoriesMap.Remove(toEdit.Name);
+            toEdit.Name = request.Name;
+            this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
+            this.CategoriesMap[toEdit.Name] = Guid.Parse(toEdit.Id);
+            this.CategoriesNamesMap[Guid.Parse(toEdit.Id)] = toEdit.Name;
+            //To Do : remove category from recipes
+            return toEdit;
         }
 
         public void WriteInFolder(string text, string path)

@@ -56,7 +56,7 @@
 									   type="checkbox" class="btn-check" id=@("btncheckedit"+category.Id)
 									   value=@category.Id
 									   autocomplete="off"
-									   @(Model.Open=="add"?(Model.Categories.Any(c=> c== category.Id) ?"checked":""):"")>
+									   @(Model.Open=="add"?(Model.Categories.Any(c=> c== Guid.Parse(category.Id)) ?"checked":""):"")>
 									<label class="btn btn-outline-danger"
 									   for=@("btncheckedit"+category.Id)>
 										@category.Name
@@ -78,7 +78,7 @@
 		@foreach (var recipe in Model.Recipes)
 		{
 			<!--showing Modal -->
-			<div class="modal fade" id=@("showModal"+recipe.ID) tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal fade" id=@("showModal"+recipe.Id) tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 				<div class="modal-dialog">
 					<div class="modal-content">
 						<div class="modal-header">
@@ -112,7 +112,7 @@
 							<div class="categories mb-3">
 								@foreach (var category in recipe.Categories)
 								{
-									<div class="category">@Model.categoriesNamesMap[category]</div>
+									<div class="category">@Model.categoriesNamesMap[Guid.Parse(category)]</div>
 								}
 							</div>
 						</div>
@@ -120,7 +120,7 @@
 				</div>
 			</div>
 			<!-- Editing Modal -->
-			<div class="modal fade" id=@("editModal"+recipe.ID) tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal fade" id=@("editModal"+recipe.Id) tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 				<div class="modal-dialog">
 					<div class="modal-content">
 						<form method="post" asp-page-handler="UpdateRecipe" class="needs-validation" novalidate>
@@ -129,12 +129,12 @@
 								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 							</div>
 							<div class="modal-body edit">
-								<label for=@("name"+recipe.ID) class="form-label ">Title</label>
-								<input type="text" class="form-control mb-3" id=@("title"+recipe.ID) name="title"
+								<label for=@("name"+recipe.Id) class="form-label ">Title</label>
+								<input type="text" class="form-control mb-3" id=@("title"+recipe.Id) name="title"
 							   value="@(Model.Open=="edit"?Model.Title:recipe.Title)" required>
-								<input type="hidden" class="form-control" name="id" value="@recipe.ID">
+								<input type="hidden" class="form-control" name="id" value="@recipe.Id">
 								<div class="form-floating mb-3">
-									<textarea class="form-control mb-3" placeholder="Leave a comment here" id=@("floatingTextarea"+recipe.ID)
+									<textarea class="form-control mb-3" placeholder="Leave a comment here" id=@("floatingTextarea"+recipe.Id)
 									  style="height: 100px" name="ingredients" required>
 										@{
 											var index2 = 0;
@@ -153,12 +153,12 @@
 											}
 										}
 																																																																																																																																																																																</textarea>
-									<label for=@("floatingTextarea"+recipe.ID)>
+									<label for=@("floatingTextarea"+recipe.Id)>
 										ingredients<span class="weaker">(separated by new lines)</span>
 									</label>
 								</div>
 								<div class="form-floating mb-3">
-									<textarea class="form-control" placeholder="Leave a comment here" id=@("floatingTextarea2"+recipe.ID) style="height: 100px" name="instructions" required>
+									<textarea class="form-control" placeholder="Leave a comment here" id=@("floatingTextarea2"+recipe.Id) style="height: 100px" name="instructions" required>
 										@{
 											index2 = 0;
 											if (Model.Open == "edit")
@@ -172,7 +172,7 @@
 													index2++;
 												}
 										}																																																																																			</textarea>
-									<label for=@("floatingTextarea2"+recipe.ID)>
+									<label for=@("floatingTextarea2"+recipe.Id)>
 										instructions<span class="weaker">(separated by new lines)</span>
 									</label>
 								</div>
@@ -182,12 +182,12 @@
 										{
 											x = "";
 											<input name="categories"
-									   type="checkbox" class="btn-check" id=@("btncheckedit"+recipe.ID+category.Id)
+									   type="checkbox" class="btn-check" id=@("btncheckedit"+recipe.Id+category.Id)
 									   value=@category.Id
 									   autocomplete="off"
-									   @(Model.Open=="edit"?(Model.Categories.Any(c=> c== category.Id) ?"checked":""):(recipe.Categories.Any(c=> c== category.Id) ?"checked":""))>
+									   @(Model.Open=="edit"?(Model.Categories.Any(c=> c==Guid.Parse(category.Id)) ?"checked":""):(recipe.Categories.Any(c=> c== category.Id) ?"checked":""))>
 											<label class="btn btn-outline-danger"
-									   for=@("btncheckedit"+recipe.ID+category.Id)>
+									   for=@("btncheckedit"+recipe.Id+category.Id)>
 												@category.Name
 											</label>
 										}
@@ -196,19 +196,19 @@
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-								<button type="submit" class="btn btn-primary" onclick="return validateEditData(`@recipe.ID`)">Save changes</button>
+								<button type="submit" class="btn btn-primary" onclick="return validateEditData(`@recipe.Id`)">Save changes</button>
 							</div>
 						</form>
 					</div>
 				</div>
 			</div>
 			<!--Delete Modal -->
-			<div class="modal fade" id=@("deleteModal"+recipe.ID)
+			<div class="modal fade" id=@("deleteModal"+recipe.Id)
 		 tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 				<div class="modal-dialog">
 					<div class="modal-content">
 						<form method="post" asp-page-handler="DeleteRecipe">
-							<input type="hidden" class="form-control" name="id" value="@recipe.ID">
+							<input type="hidden" class="form-control" name="id" value="@recipe.Id">
 							<div class="modal-header">
 								<h5 class="modal-title">Deleting a Recipe</h5>
 								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -252,12 +252,12 @@
 						<div class="buttons">
 							<!-- Button trigger modal -->
 							<button type="button" class="btn btn-secondary" data-bs-toggle="modal"
-							data-bs-target=@("#showModal"+recipe.ID)>
+							data-bs-target=@("#showModal"+recipe.Id)>
 								<img class="action" src="~/Images/view.png" alt="view" />
 							</button>
 							<!-- Button trigger modal -->
-							<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=@("#editModal"+recipe.ID)
-							id=@("editButton"+recipe.ID){
+							<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=@("#editModal"+recipe.Id)
+							id=@("editButton"+recipe.Id){
 							x="editButton">
 								<img class="action" src="~/Images/edit.png" alt="edit" />
 							</button>
@@ -265,7 +265,7 @@
 
 							<!-- Button trigger modal -->
 							<button type="button" class="btn btn-danger" data-bs-toggle="modal"
-							data-bs-target=@("deleteModal"+recipe.ID) id=@("deleteButton"+recipe.ID)>
+							data-bs-target=@("deleteModal"+recipe.Id) id=@("deleteButton"+recipe.Id)>
 								<img class="action" src="~/Images/bin.png" alt="del" />
 							</button>
 						</div>
