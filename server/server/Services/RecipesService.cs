@@ -13,6 +13,9 @@ namespace server.Services
 
         public override Task<RecipesList> ListRecipes(VoidRecipe request, ServerCallContext context)
         {
+            RecipesList response = new();
+            List<Recipe> list2 = new(); 
+            response.Recipes.AddRange(list2);
             return base.ListRecipes(request, context);
         }
         public override Task<Recipe> CreateRecipe(RecipeToAdd request, ServerCallContext context)

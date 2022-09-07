@@ -64,7 +64,7 @@ namespace exercise_5_frontend.Pages
             for (int i = 0; i < CategoriesList.Count; i++)
             {
                 //categoriesMap[categories[i].Name] = categories[i].ID;
-                this.categoriesNamesMap[CategoriesList[i].ID] = CategoriesList[i].Name;
+                this.categoriesNamesMap[CategoriesList[i].Id] = CategoriesList[i].Name;
             }
         }
         public async Task<IActionResult> OnPostCreateRecipe()

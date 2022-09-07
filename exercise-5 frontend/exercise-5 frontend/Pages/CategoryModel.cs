@@ -1,15 +1,17 @@
 ﻿using exercise_5_frontend.Models;
+using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text;
 using System.Text.Json;
+using static server.Categories;
 
 namespace exercise_5_frontend.Pages
 {
     public class CategoryModel : PageModel
     {
         public HttpClient HttpClient = new();
-        public List<Category> Categories = new();
+        public List<server.Category> Categories = new();
         [BindProperty(SupportsGet = true)]
         public string ReqResult { get; set; }
         [BindProperty(SupportsGet = true)]
@@ -19,13 +21,19 @@ namespace exercise_5_frontend.Pages
         [BindProperty(SupportsGet = true)]
         public string Name { get; set; }
         [BindProperty(SupportsGet = true)]
-        public string Open { get; set; } 
+        public string Open { get; set; }
         private readonly ILogger<IndexModel> _logger;
         private readonly IConfiguration Configuration;
+        private readonly GrpcChannel channel;
+        private readonly CategoriesClient client;
+
         public CategoryModel(ILogger<IndexModel> logger, IConfiguration configuration)
         {
             _logger = logger;
             Configuration = configuration;
+            channel = GrpcChannel.ForAddress("https://localhost:5500");
+            client = new CategoriesClient(channel);
+
         }
 
         public async Task OnGet()
@@ -34,37 +42,22 @@ namespace exercise_5_frontend.Pages
         }
         public async Task ListCategories()
         {
-            var res = await HttpClient.GetAsync(Configuration["BaseUrl"] + "categories");
-            var serializeOptions = new JsonSerializerOptions
+            var reply = await client.ListCategoriesAsync(new server.VoidCategory { });
+            foreach (var category in reply.Categories)
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-            var inBetween = res.Content.ReadAsStringAsync().Result;
-            List<Category> categories = JsonSerializer.Deserialize<List<Category>>(inBetween, serializeOptions);
-            this.Categories = categories;
+                this.Categories.Add(category);
+            }
         }
         public async Task<IActionResult> OnPostAddCategory()
         {
-            Category toAdd = new Category(Name);
-            var temp = JsonSerializer.Serialize(toAdd);
-            var res = await HttpClient.PostAsync(Configuration["BaseUrl"] + "categories", new StringContent(temp, Encoding.UTF8, "application/json"));
-            if ((int)res.StatusCode == 200)
-            {
-                //ReqResult = "success";
-                //Msg = "your category has been added successfully";
-                return Redirect("/Categories?ReqResult=success&Msg=your category has been added successfully");
-            }
-            else
-            {
-                //ReqResult = "failure";
-                //Msg = "something went wrong with your request .. check your data and try again";
-                return Redirect("/Categories?ReqResult=failure&Msg=something went wrong with your request .. check your data and try again&name=" + Name);
-            }
+            var reply = await client.CreateCategoryAsync(new server.CategoryToAdd { Name = Name });
+            return Redirect("/Categories?ReqResult=success&Msg=your category has been added successfully");
+
         }
         public async Task<IActionResult> OnPostUpdateCategory()
         {
             Category toEdit = new Category(Name);
-            toEdit.ID = ID;
+            toEdit.Id = ID;
             var temp = JsonSerializer.Serialize(toEdit);
             var res = await HttpClient.PutAsync(Configuration["BaseUrl"] + "categories/" + ID, new StringContent(temp, Encoding.UTF8, "application/json"));
             if ((int)res.StatusCode == 200)

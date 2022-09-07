@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option csharp_namespace = "server";
+
+package Categories;
+
+service Categories {
+  rpc ListCategories (VoidCategory) returns (CategoriesList);
+  rpc CreateCategory (CategoryToAdd) returns (Category);
+  rpc EditCategory (Category) returns (Category);
+  rpc DeleteCategory (CategoryToDelete) returns (Category);
+}
+
+
+message Category {
+	string id = 1 ;
+	string name = 2 ;
+}
+message VoidCategory {
+}
+
+message CategoryToAdd {
+	string name = 1 ;
+}
+
+message CategoryToDelete {
+	string id =1 ;
+}
+
+message CategoriesList {
+	repeated Category categories = 1;
+}
+
+

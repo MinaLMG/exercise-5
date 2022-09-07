@@ -53,12 +53,12 @@
 								{
 									x = "";
 									<input name="categories"
-									   type="checkbox" class="btn-check" id=@("btncheckedit"+category.ID)
-									   value=@category.ID
+									   type="checkbox" class="btn-check" id=@("btncheckedit"+category.Id)
+									   value=@category.Id
 									   autocomplete="off"
-									   @(Model.Open=="add"?(Model.Categories.Any(c=> c== category.ID) ?"checked":""):"")>
+									   @(Model.Open=="add"?(Model.Categories.Any(c=> c== category.Id) ?"checked":""):"")>
 									<label class="btn btn-outline-danger"
-									   for=@("btncheckedit"+category.ID)>
+									   for=@("btncheckedit"+category.Id)>
 										@category.Name
 									</label>
 								}
@@ -182,12 +182,12 @@
 										{
 											x = "";
 											<input name="categories"
-									   type="checkbox" class="btn-check" id=@("btncheckedit"+recipe.ID+category.ID)
-									   value=@category.ID
+									   type="checkbox" class="btn-check" id=@("btncheckedit"+recipe.ID+category.Id)
+									   value=@category.Id
 									   autocomplete="off"
-									   @(Model.Open=="edit"?(Model.Categories.Any(c=> c== category.ID) ?"checked":""):(recipe.Categories.Any(c=> c== category.ID) ?"checked":""))>
+									   @(Model.Open=="edit"?(Model.Categories.Any(c=> c== category.Id) ?"checked":""):(recipe.Categories.Any(c=> c== category.Id) ?"checked":""))>
 											<label class="btn btn-outline-danger"
-									   for=@("btncheckedit"+recipe.ID+category.ID)>
+									   for=@("btncheckedit"+recipe.ID+category.Id)>
 												@category.Name
 											</label>
 										}

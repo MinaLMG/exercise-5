@@ -29,13 +29,13 @@
 							<td>@category.Name</td>
 							<td class="flex">
 								<!-- Button trigger modal -->
-								<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=@("#editModal"+category.ID)
-								id=@("#editButton"+category.ID)>
+								<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target=@("#editModal"+category.Id)
+								id=@("#editButton"+category.Id)>
 									<img class="action" src="~/Images/edit.png" alt="edit"></img>
 								</button>
 
 								<!-- Modal -->
-								<div class="modal fade" id=@("editModal"+category.ID) tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+								<div class="modal fade" id=@("editModal"+category.Id) tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 									<div class="modal-dialog">
 										<div class="modal-content">
 											<form method="post" asp-page-handler="UpdateCategory" class="needs-validation" novalidate>
@@ -48,14 +48,14 @@
 													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 												</div>
 												<div class="modal-body edit">
-													<label for=@("name"+category.ID) class="form-label">Name</label>
-													<input type="text" class="form-control" id=@("name"+category.ID) name="name"
-												   value=@(Model.ID!=new Guid() && Model.ID==category.ID && Model.Open=="edit"?Model.Name:category.Name) required>
-													<input type="hidden" class="form-control" name="id" value="@category.ID" required>
+													<label for=@("name"+category.Id) class="form-label">Name</label>
+													<input type="text" class="form-control" id=@("name"+category.Id) name="name"
+												   value=@(Model.ID!=new Guid() && Model.ID==Guid.Parse(category.Id) && Model.Open=="edit"?Model.Name:category.Name) required>
+													<input type="hidden" class="form-control" name="id" value="@category.Id" required>
 												</div>
 												<div class="modal-footer">
 													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-													<button type="submit" class="btn btn-primary" onclick="return validateEditData(`@category.ID`)">Save changes</button>
+													<button type="submit" class="btn btn-primary" onclick="return validateEditData(`@category.Id`)">Save changes</button>
 												</div>
 
 											</form>
@@ -63,18 +63,18 @@
 									</div>
 								</div>
 								<!-- Button trigger modal -->
-								<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target=@("#deleteModal"+category.ID)
-								id=@("deleteButton"+category.ID)>
+								<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target=@("#deleteModal"+category.Id)
+								id=@("deleteButton"+category.Id)>
 									<img class="action" src="~/Images/bin.png" alt="delete"></img>
 								</button>
 
 								<!-- Modal -->
-								<div class="modal fade" id=@("deleteModal"+category.ID)
+								<div class="modal fade" id=@("deleteModal"+category.Id)
 							 tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 									<div class="modal-dialog">
 										<div class="modal-content">
 											<form method="post" asp-page-handler="DeleteCategory" class="needs-validation" novalidate>
-												<input type="hidden" class="form-control" name="id" value="@category.ID">
+												<input type="hidden" class="form-control" name="id" value="@category.Id">
 												<div class="modal-header">
 													<h5 class="modal-title">
 														Deleting a Category
