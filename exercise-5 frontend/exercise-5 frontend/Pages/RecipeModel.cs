@@ -68,38 +68,33 @@ namespace exercise_5_frontend.Pages
         }
         public async Task<IActionResult> OnPostCreateRecipe()
         {
-            //Recipe toAdd = new Recipe("", new(), new(), new());
 
-            //toAdd.Title = Title.Trim();
-            //foreach (Guid category in Categories)
-            //{
-            //    toAdd.Categories.Add(category);
-            //}
+            RecipeToAdd toAdd = new();
+            toAdd.Title = Title.Trim();
 
-            //toAdd.Instructions = new();
-            //// using the method
-            //String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            //foreach (String s in strlist)
-            //{
-            //    if (s.Trim() != "")
-            //    {
-            //        toAdd.Instructions.Add(s.Trim());
-            //    }
-            //}
-            //strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            //foreach (String s in strlist)
-            //{
-            //    if (s.Trim() != "")
-            //        toAdd.Ingredients.Add(s.Trim());
-            //}
+            foreach (Guid category in Categories)
+            {
+                toAdd.Categories.Add(category.ToString());
+            }
 
+            // using the method
+            String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            foreach (String s in strlist)
+            {
+                if (s.Trim() != "")
+                {
+                    toAdd.Instructions.Add(s.Trim());
+                }
+            }
 
-            //var temp = JsonSerializer.Serialize(toAdd);
-            var res = await HttpClient.PostAsync(Configuration["BaseUrl"] + "recipes", new StringContent("", Encoding.UTF8, "application/json"));
-            if ((int)res.StatusCode == 200)
-                return Redirect("/recipes?ReqResult=success&Msg=your recipe has been added successfully");
-            else
-                return RedirectToPage("/recipes", new { ReqResult = "failure", Msg = "something went wrong with your request .. check your data and try again", open = "add", title = Title, instructions = Instructions, ingredients = Ingredients, categories = Categories });
+            strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            foreach (String s in strlist)
+            {
+                if (s.Trim() != "")
+                    toAdd.Ingredients.Add(s.Trim());
+            }
+            var reply = await recipesClient.CreateRecipeAsync(toAdd);
+            return Redirect("/recipes?ReqResult=success&Msg=your recipe has been added successfully");
         }
         public async Task<IActionResult> OnPostUpdateRecipe()
         {

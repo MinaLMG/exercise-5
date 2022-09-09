@@ -25,6 +25,9 @@ message VoidRecipe {
 
 message RecipeToAdd {
 	string title = 1;
+	repeated string instructions = 2;
+	repeated string ingredients = 3;
+	repeated string categories = 4;
 }
 
 message RecipeToDelete {
