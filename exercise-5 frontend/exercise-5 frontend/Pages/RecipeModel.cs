@@ -60,7 +60,15 @@ namespace exercise_5_frontend.Pages
             {
                 this.CategoriesList.Add(category);
             }
-             var reply2 = await recipesClient.ListRecipesAsync(new server.VoidRecipe { });
+            /* storing some dictionaries*/
+            //Dictionary<string, Guid> categoriesMap = new Dictionary<string, Guid>();
+            for (int i = 0; i < CategoriesList.Count; i++)
+            {
+                //categoriesMap[categories[i].Name] = categories[i].ID;
+                this.categoriesNamesMap[Guid.Parse(CategoriesList[i].Id)] = CategoriesList[i].Name;
+            }
+            /**** getting recipes ****/
+            var reply2 = await recipesClient.ListRecipesAsync(new server.VoidRecipe { });
             foreach (var recipe in reply2.Recipes)
             {
                 this.Recipes.Add(recipe);
@@ -98,53 +106,35 @@ namespace exercise_5_frontend.Pages
         }
         public async Task<IActionResult> OnPostUpdateRecipe()
         {
-            //Recipe toEdit = new Recipe("", new(), new(), new());
-            //toEdit.ID = ID;
-            //toEdit.Title = Title.Trim();
-            //foreach (Guid category in Categories)
-            //{
-            //    toEdit.Categories.Add(category);
-            //}
-
-            //toEdit.Instructions = new();
-            //// using the method
-            //Instructions = Instructions.Trim();
-            //String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            //foreach (String s in strlist)
-            //{
-            //    if (s.Trim() != "")
-            //        toEdit.Instructions.Add(s.Trim());
-            //}
-            //Ingredients = Ingredients.Trim();
-            //strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            //foreach (String s in strlist)
-            //{
-            //    if (s.Trim() != "")
-            //        toEdit.Ingredients.Add(s.Trim());
-            //}
-
-
-            //var temp = JsonSerializer.Serialize(toEdit);
-            var res = await HttpClient.PutAsync(Configuration["BaseUrl"] + "recipes/" + ID, new StringContent("", Encoding.UTF8, "application/json"));
-            if ((int)res.StatusCode == 200)
-                return Redirect("/recipes?ReqResult=success&Msg=the recipe has been updated successfully");
-            else
-                return RedirectToPage("/recipes", new { ReqResult = "failure", Msg = "something went wrong with your request .. review your data and try again", open = "edit", title = Title, id = ID, instructions = Instructions, ingredients = Ingredients, categories = Categories }); /*+ "&instructions=" + Instructions + "&ingredients=" + Ingredients);*/
+            Recipe toEdit = new Recipe();
+            toEdit.Id = ID.ToString();
+            toEdit.Title = Title.Trim();
+            foreach (Guid category in Categories)
+            {
+                toEdit.Categories.Add(category.ToString());
+            }
+            Instructions = Instructions.Trim();
+            String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            foreach (String s in strlist)
+            {
+                if (s.Trim() != "")
+                    toEdit.Instructions.Add(s.Trim());
+            }
+            Ingredients = Ingredients.Trim();
+            strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+            foreach (String s in strlist)
+            {
+                if (s.Trim() != "")
+                    toEdit.Ingredients.Add(s.Trim());
+            }
+            var reply= await recipesClient.EditRecipeAsync(toEdit);
+            return Redirect("/recipes?ReqResult=success&Msg=the recipe has been updated successfully");
         }
         public async Task<IActionResult> OnPostDeleteRecipe()
         {
-            var res = await HttpClient.DeleteAsync(Configuration["BaseUrl"] + "recipes/" + ID);
-            if ((int)res.StatusCode == 200)
-                return Redirect("/recipes?ReqResult=success&Msg=the recipe has been deleted successfully");
-            else
-                return RedirectToPage("/recipes",
-                    new
-                    {
-                        ReqResult = "failure",
-                        Msg = "something went wrong with your request .. you can retry after some seconds",
-                        open = "delete",
-                        id = ID,
-                    });
+            var reply =await recipesClient.DeleteRecipeAsync(new RecipeToDelete { Id = ID.ToString() });
+            return Redirect("/recipes?ReqResult=success&Msg=the recipe has been deleted successfully");
+
         }
     }
 }

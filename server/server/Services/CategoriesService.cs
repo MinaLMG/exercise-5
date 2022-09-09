@@ -1,5 +1,6 @@
 using Grpc.Core;
-using System.Text.Json;
+using Newtonsoft.Json;
+
 namespace server.Services
 {
     public class CategoriesService : Categories.CategoriesBase
@@ -11,8 +12,8 @@ namespace server.Services
         //public string RecipesLoc { get; set; }
         public string CategoriesLoc { get; set; }
         private bool isLoaded = false;
-        public JsonSerializerOptions Options { get; set; }
-
+        //public JsonSerializerOptions Options { get; set; }
+        public Serialization Serializer=new();
         private readonly ILogger<CategoriesService> _logger;
         public CategoriesService(ILogger<CategoriesService> logger)
         {
@@ -20,6 +21,13 @@ namespace server.Services
         }
         public override async Task<CategoriesList> ListCategories(VoidCategory request, ServerCallContext context)
         {
+            //string mainPath = Environment.CurrentDirectory;
+            //this.CategoriesLoc = $@"{mainPath}\..\categories.json";
+            //Category cs =new Category();
+            //cs.Id = "5fb8915e-3819-4ae1-97f7-b7ed11e828a0";
+            //cs.Name = "dsaijkld";
+            //this.Categories.Add(cs)  ;
+            //Serializer.Serialize(this.Categories, this.CategoriesLoc);
             if (!isLoaded)
             {
                 await LoadData();
@@ -44,7 +52,8 @@ namespace server.Services
             Categories.Add(toAdd);
             this.CategoriesMap[toAdd.Name] = Guid.Parse(toAdd.Id);
             this.CategoriesNamesMap[Guid.Parse(toAdd.Id)] = toAdd.Name;
-            this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
+            Serializer.Serialize(this.Categories, this.CategoriesLoc);
+            //this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
             return toAdd;
         }
 
@@ -58,7 +67,7 @@ namespace server.Services
             CategoriesMap.Remove(toDelete.Name);
             CategoriesMap.Remove(toDelete.Id);
             Categories.Remove(toDelete);
-            this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
+            Serializer.Serialize(this.Categories, this.CategoriesLoc);
             //To Do : remove category from recipes
             return toDelete;
         }
@@ -72,10 +81,9 @@ namespace server.Services
             Category toEdit = Categories.Single(x => x.Id == request.Id);
             CategoriesMap.Remove(toEdit.Name);
             toEdit.Name = request.Name;
-            this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
+            Serializer.Serialize(this.Categories, this.CategoriesLoc);
             this.CategoriesMap[toEdit.Name] = Guid.Parse(toEdit.Id);
             this.CategoriesNamesMap[Guid.Parse(toEdit.Id)] = toEdit.Name;
-            //To Do : remove category from recipes
             return toEdit;
         }
 
@@ -89,7 +97,6 @@ namespace server.Services
         public async Task LoadData()
         {
 
-            this.Options = new JsonSerializerOptions { WriteIndented = true };
             string mainPath = Environment.CurrentDirectory;
 
             //if (app.Environment.IsDevelopment())
@@ -100,8 +107,12 @@ namespace server.Services
             //{
             //    this.CategoriesLoc = $@"{mainPath}\categories.json";
             //}
-            string categoriesString = File.ReadAllText(this.CategoriesLoc);
-            this.Categories = JsonSerializer.Deserialize<List<server.Category>>(categoriesString);
+             
+            this.Categories =(List<Category>)Serializer.Deserialize(this.CategoriesLoc,"cat");
+            //foreach (var cat in x)
+            //{
+            //    this.Categories.Add(cat);
+            //}           
             /****/
             this.CategoriesMap = new Dictionary<string, Guid>();
             this.CategoriesNamesMap = new Dictionary<Guid, string>();
