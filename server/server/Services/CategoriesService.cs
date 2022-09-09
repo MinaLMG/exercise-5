@@ -6,11 +6,14 @@ namespace server.Services
     public class CategoriesService : Categories.CategoriesBase
     {
         public List<Category> Categories { get; set; } = new();
+        public List<Recipe> Recipes { get; set; } = new();
+
         //public List<server.Recipe> Recipes { get; set; } = new();
         public Dictionary<string, Guid> CategoriesMap { get; set; }
         public Dictionary<Guid, string> CategoriesNamesMap { get; set; }
         //public string RecipesLoc { get; set; }
         public string CategoriesLoc { get; set; }
+        public string RecipesLoc { get; set; }
         private bool isLoaded = false;
         //public JsonSerializerOptions Options { get; set; }
         public Serialization Serializer=new();
@@ -68,7 +71,17 @@ namespace server.Services
             CategoriesMap.Remove(toDelete.Id);
             Categories.Remove(toDelete);
             Serializer.Serialize(this.Categories, this.CategoriesLoc);
-            //To Do : remove category from recipes
+            //remove category from recipes
+            Recipes.ForEach(rec =>
+            {
+                try
+                {
+                    string toRemove = rec.Categories.Single(C => C == request.Id);
+                    rec.Categories.Remove(toRemove);
+                }
+                catch { }
+            });
+            Serializer.Serialize(this.Recipes, this.RecipesLoc);
             return toDelete;
         }
 
@@ -121,6 +134,18 @@ namespace server.Services
                 this.CategoriesMap[this.Categories[i].Name] = Guid.Parse(this.Categories[i].Id);
                 this.CategoriesNamesMap[Guid.Parse(this.Categories[i].Id)] = this.Categories[i].Name;
             }
+
+            //if (app.Environment.IsDevelopment())
+            //{
+            this.RecipesLoc = $@"{mainPath}\..\recipes.json";
+            //}
+            //else
+            //{
+            //    this.RecipesLoc = $@"{mainPath}\recipes.json";
+            //}
+            string recipesString = File.ReadAllText(this.RecipesLoc);
+            this.Recipes = (List<Recipe>)Serializer.Deserialize(this.RecipesLoc, "rec");
+
             isLoaded = true;
         }
     }
