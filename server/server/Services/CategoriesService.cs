@@ -1,5 +1,6 @@
 using Grpc.Core;
 using Newtonsoft.Json;
+using static server.Serialization;
 
 namespace server.Services
 {
@@ -24,13 +25,6 @@ namespace server.Services
         }
         public override async Task<CategoriesList> ListCategories(VoidCategory request, ServerCallContext context)
         {
-            //string mainPath = Environment.CurrentDirectory;
-            //this.CategoriesLoc = $@"{mainPath}\..\categories.json";
-            //Category cs =new Category();
-            //cs.Id = "5fb8915e-3819-4ae1-97f7-b7ed11e828a0";
-            //cs.Name = "dsaijkld";
-            //this.Categories.Add(cs)  ;
-            //Serializer.Serialize(this.Categories, this.CategoriesLoc);
             if (!isLoaded)
             {
                 await LoadData();
@@ -121,7 +115,7 @@ namespace server.Services
             //    this.CategoriesLoc = $@"{mainPath}\categories.json";
             //}
              
-            this.Categories =(List<Category>)Serializer.Deserialize(this.CategoriesLoc,"cat");
+            this.Categories =(List<Category>)Serializer.Deserialize(this.CategoriesLoc,SerializationType.ListOfCategories);
             //foreach (var cat in x)
             //{
             //    this.Categories.Add(cat);
@@ -144,7 +138,7 @@ namespace server.Services
             //    this.RecipesLoc = $@"{mainPath}\recipes.json";
             //}
             string recipesString = File.ReadAllText(this.RecipesLoc);
-            this.Recipes = (List<Recipe>)Serializer.Deserialize(this.RecipesLoc, "rec");
+            this.Recipes = (List<Recipe>)Serializer.Deserialize(this.RecipesLoc, SerializationType.ListOfRecipes);
 
             isLoaded = true;
         }

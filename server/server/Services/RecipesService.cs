@@ -1,5 +1,6 @@
 using Grpc.Core;
 using server;
+using static server.Serialization;
 
 namespace server.Services
 {
@@ -118,7 +119,7 @@ namespace server.Services
             //{
             //    this.CategoriesLoc = $@"{mainPath}\categories.json";
             //}
-            this.Categories = (List<Category>)Serializer.Deserialize(this.CategoriesLoc, "cat");
+            this.Categories = (List<Category>)Serializer.Deserialize(this.CategoriesLoc, SerializationType.ListOfCategories);
             /****/
             this.CategoriesMap = new Dictionary<string, Guid>();
             this.CategoriesNamesMap = new Dictionary<Guid, string>();
@@ -136,7 +137,7 @@ namespace server.Services
             //    this.RecipesLoc = $@"{mainPath}\recipes.json";
             //}
             string recipesString = File.ReadAllText(this.RecipesLoc);
-            this.Recipes = (List<Recipe>)Serializer.Deserialize(this.RecipesLoc, "rec");
+            this.Recipes = (List<Recipe>)Serializer.Deserialize(this.RecipesLoc, SerializationType.ListOfRecipes);
 
             isLoaded = true;
         }

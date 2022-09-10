@@ -4,7 +4,11 @@ namespace server
 {
     public class Serialization
     {
-
+        public enum SerializationType
+        {
+            ListOfCategories,
+            ListOfRecipes,
+        }
         public void Serialize(object obj, string filePath)
         {
             var serializer = new JsonSerializer();
@@ -16,7 +20,7 @@ namespace server
             }
         }
 
-        public object Deserialize(string path, string type)
+        public object Deserialize(string path, SerializationType type)
         {
             var serializer = new JsonSerializer();
 
@@ -25,9 +29,9 @@ namespace server
             {
                 switch (type)
                 {
-                    case "cat":
+                    case SerializationType.ListOfCategories:
                         return serializer.Deserialize<List<Category>>(reader);
-                    case "rec":
+                    case SerializationType.ListOfRecipes:
                         return serializer.Deserialize<List<Recipe>>(reader);
                     default:
                         return serializer.Deserialize(reader);
