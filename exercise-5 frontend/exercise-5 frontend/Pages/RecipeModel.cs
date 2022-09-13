@@ -1,4 +1,5 @@
 ﻿using Grpc.Net.Client;
+using Grpc.Net.Client.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using server;
@@ -44,7 +45,10 @@ namespace exercise_5_frontend.Pages
         {
             Configuration = configuration;
             _logger = logger;
-            channel = GrpcChannel.ForAddress("https://localhost:5500");
+            channel = GrpcChannel.ForAddress(configuration["BaseUrl"],new GrpcChannelOptions
+            {
+                HttpHandler = new GrpcWebHandler(new HttpClientHandler())
+            });
             categoriesClient = new CategoriesClient(channel);
             recipesClient = new RecipesClient(channel);
         }
@@ -127,12 +131,12 @@ namespace exercise_5_frontend.Pages
                 if (s.Trim() != "")
                     toEdit.Ingredients.Add(s.Trim());
             }
-            var reply= await recipesClient.EditRecipeAsync(toEdit);
+            var reply = await recipesClient.EditRecipeAsync(toEdit);
             return Redirect("/recipes?ReqResult=success&Msg=the recipe has been updated successfully");
         }
         public async Task<IActionResult> OnPostDeleteRecipe()
         {
-            var reply =await recipesClient.DeleteRecipeAsync(new RecipeToDelete { Id = ID.ToString() });
+            var reply = await recipesClient.DeleteRecipeAsync(new RecipeToDelete { Id = ID.ToString() });
             return Redirect("/recipes?ReqResult=success&Msg=the recipe has been deleted successfully");
 
         }

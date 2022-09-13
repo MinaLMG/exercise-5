@@ -8,15 +8,11 @@ namespace server.Services
     {
         public List<Category> Categories { get; set; } = new();
         public List<Recipe> Recipes { get; set; } = new();
-
-        //public List<server.Recipe> Recipes { get; set; } = new();
         public Dictionary<string, Guid> CategoriesMap { get; set; }
         public Dictionary<Guid, string> CategoriesNamesMap { get; set; }
-        //public string RecipesLoc { get; set; }
         public string CategoriesLoc { get; set; }
         public string RecipesLoc { get; set; }
         private bool isLoaded = false;
-        //public JsonSerializerOptions Options { get; set; }
         public Serialization Serializer=new();
         private readonly ILogger<CategoriesService> _logger;
         public CategoriesService(ILogger<CategoriesService> logger)
@@ -103,24 +99,9 @@ namespace server.Services
         }
         public async Task LoadData()
         {
-
             string mainPath = Environment.CurrentDirectory;
-
-            //if (app.Environment.IsDevelopment())
-            //{
-            this.CategoriesLoc = $@"{mainPath}\..\categories.json";
-            //}
-            //else
-            //{
-            //    this.CategoriesLoc = $@"{mainPath}\categories.json";
-            //}
-             
+            this.CategoriesLoc = $@"{mainPath}\categories.json";             
             this.Categories =(List<Category>)Serializer.Deserialize(this.CategoriesLoc,SerializationType.ListOfCategories);
-            //foreach (var cat in x)
-            //{
-            //    this.Categories.Add(cat);
-            //}           
-            /****/
             this.CategoriesMap = new Dictionary<string, Guid>();
             this.CategoriesNamesMap = new Dictionary<Guid, string>();
             for (int i = 0; i < this.Categories.Count; i++)
@@ -128,18 +109,9 @@ namespace server.Services
                 this.CategoriesMap[this.Categories[i].Name] = Guid.Parse(this.Categories[i].Id);
                 this.CategoriesNamesMap[Guid.Parse(this.Categories[i].Id)] = this.Categories[i].Name;
             }
-
-            //if (app.Environment.IsDevelopment())
-            //{
-            this.RecipesLoc = $@"{mainPath}\..\recipes.json";
-            //}
-            //else
-            //{
-            //    this.RecipesLoc = $@"{mainPath}\recipes.json";
-            //}
+            this.RecipesLoc = $@"{mainPath}\recipes.json";
             string recipesString = File.ReadAllText(this.RecipesLoc);
             this.Recipes = (List<Recipe>)Serializer.Deserialize(this.RecipesLoc, SerializationType.ListOfRecipes);
-
             isLoaded = true;
         }
     }

@@ -13,9 +13,7 @@ namespace server.Services
         public string RecipesLoc { get; set; }
         public string CategoriesLoc { get; set; }
         private bool isLoaded = false;
-        //public JsonSerializerOptions Options { get; set; }
         public Serialization Serializer = new();
-
         private readonly ILogger<RecipesService> _logger;
         public RecipesService(ILogger<RecipesService> logger)
         {
@@ -110,15 +108,7 @@ namespace server.Services
         {
 
             string mainPath = Environment.CurrentDirectory;
-
-            //if (app.Environment.IsDevelopment())
-            //{
-            this.CategoriesLoc = $@"{mainPath}\..\categories.json";
-            //}
-            //else
-            //{
-            //    this.CategoriesLoc = $@"{mainPath}\categories.json";
-            //}
+            this.CategoriesLoc = $@"{mainPath}\categories.json";
             this.Categories = (List<Category>)Serializer.Deserialize(this.CategoriesLoc, SerializationType.ListOfCategories);
             /****/
             this.CategoriesMap = new Dictionary<string, Guid>();
@@ -128,17 +118,9 @@ namespace server.Services
                 this.CategoriesMap[this.Categories[i].Name] = Guid.Parse(this.Categories[i].Id);
                 this.CategoriesNamesMap[Guid.Parse(this.Categories[i].Id)] = this.Categories[i].Name;
             }
-            //if (app.Environment.IsDevelopment())
-            //{
-            this.RecipesLoc = $@"{mainPath}\..\recipes.json";
-            //}
-            //else
-            //{
-            //    this.RecipesLoc = $@"{mainPath}\recipes.json";
-            //}
+            this.RecipesLoc = $@"{mainPath}\recipes.json";
             string recipesString = File.ReadAllText(this.RecipesLoc);
             this.Recipes = (List<Recipe>)Serializer.Deserialize(this.RecipesLoc, SerializationType.ListOfRecipes);
-
             isLoaded = true;
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Grpc.Net.Client;
+using Grpc.Net.Client.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text;
@@ -26,12 +27,15 @@ namespace exercise_5_frontend.Pages
         private readonly GrpcChannel channel;
         private readonly CategoriesClient client;
 
-        public CategoryModel(ILogger<IndexModel> logger, IConfiguration configuration)
+        public CategoryModel(ILogger<IndexModel> logger, IConfiguration configuration,CategoriesClient cc)
         {
             logger = logger;
             configuration = configuration;
-            channel = GrpcChannel.ForAddress("https://localhost:5500");
-            client = new CategoriesClient(channel);
+            //channel = GrpcChannel.ForAddress(configuration["BaseUrl"], new GrpcChannelOptions
+            //{
+            //    HttpHandler = new GrpcWebHandler(new HttpClientHandler())
+            //});
+            client = cc;
 
         }
 
