@@ -5,11 +5,11 @@ using server.Services;
 var builder = WebApplication.CreateBuilder();
 
 builder.Services.AddGrpc();
-//builder.WebHost.ConfigureKestrel(k =>
-//{
-//    k.ConfigureEndpointDefaults(options => options.Protocols = HttpProtocols.Http2);
-//    k.ListenLocalhost(5500, o => o.UseHttps());
-//});
+builder.WebHost.ConfigureKestrel(k =>
+{
+    k.ConfigureEndpointDefaults(options => options.Protocols = HttpProtocols.Http2);
+    k.ListenLocalhost(5500, o => o.UseHttps());
+});
 builder.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
 {
     builder.AllowAnyOrigin()

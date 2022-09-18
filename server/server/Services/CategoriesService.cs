@@ -13,7 +13,7 @@ namespace server.Services
         public string CategoriesLoc { get; set; }
         public string RecipesLoc { get; set; }
         private bool isLoaded = false;
-        public Serialization Serializer=new();
+        public Serialization Serializer = new();
         private readonly ILogger<CategoriesService> _logger;
         public CategoriesService(ILogger<CategoriesService> logger)
         {
@@ -21,73 +21,125 @@ namespace server.Services
         }
         public override async Task<CategoriesList> ListCategories(VoidCategory request, ServerCallContext context)
         {
-            if (!isLoaded)
+            try
             {
-                await LoadData();
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                CategoriesList response = new();
+                Categories.ForEach(cat =>
+                {
+                    response.Categories.Add(cat);
+                });
+                return response;
             }
-            CategoriesList response = new();
-            Categories.ForEach(cat =>
+            catch
             {
-                response.Categories.Add(cat);
-            });
-            return response;
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
+            }
         }
 
         public override async Task<Category> CreateCategory(CategoryToAdd request, ServerCallContext context)
         {
-            if (!isLoaded)
+            try
             {
-                await LoadData();
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                Category toAdd = new Category();
+                toAdd.Name = request.Name.Trim();
+                if (toAdd.Name == "")
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for name attribute!"));
+                }
+                toAdd.Id = Guid.NewGuid().ToString();
+                Categories.Add(toAdd);
+                this.CategoriesMap[toAdd.Name] = Guid.Parse(toAdd.Id);
+                this.CategoriesNamesMap[Guid.Parse(toAdd.Id)] = toAdd.Name;
+                Serializer.Serialize(this.Categories, this.CategoriesLoc);
+                //this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
+                return toAdd;
             }
-            Category toAdd = new Category();
-            toAdd.Name = request.Name;
-            toAdd.Id = Guid.NewGuid().ToString();
-            Categories.Add(toAdd);
-            this.CategoriesMap[toAdd.Name] = Guid.Parse(toAdd.Id);
-            this.CategoriesNamesMap[Guid.Parse(toAdd.Id)] = toAdd.Name;
-            Serializer.Serialize(this.Categories, this.CategoriesLoc);
-            //this.WriteInFolder(JsonSerializer.Serialize(this.Categories, this.Options), this.CategoriesLoc);
-            return toAdd;
+            catch
+            {
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
+            }
         }
 
         public override async Task<Category> DeleteCategory(CategoryToDelete request, ServerCallContext context)
         {
-            if (!isLoaded)
+            try
             {
-                await LoadData();
-            }
-            Category toDelete = Categories.Single(x => x.Id == request.Id);
-            CategoriesMap.Remove(toDelete.Name);
-            CategoriesMap.Remove(toDelete.Id);
-            Categories.Remove(toDelete);
-            Serializer.Serialize(this.Categories, this.CategoriesLoc);
-            //remove category from recipes
-            Recipes.ForEach(rec =>
-            {
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                Category toDelete;
                 try
                 {
-                    string toRemove = rec.Categories.Single(C => C == request.Id);
-                    rec.Categories.Remove(toRemove);
+                    toDelete = Categories.Single(x => x.Id == request.Id);
                 }
-                catch { }
-            });
-            Serializer.Serialize(this.Recipes, this.RecipesLoc);
-            return toDelete;
+                catch
+                {
+                    throw new RpcException(new Status(StatusCode.NotFound, "no category exists with this ID!"));
+                }
+                CategoriesMap.Remove(toDelete.Name);
+                CategoriesMap.Remove(toDelete.Id);
+                Categories.Remove(toDelete);
+                Serializer.Serialize(this.Categories, this.CategoriesLoc);
+                //remove category from recipes
+                Recipes.ForEach(rec =>
+                {
+                    try
+                    {
+                        string toRemove = rec.Categories.Single(C => C == request.Id);
+                        rec.Categories.Remove(toRemove);
+                    }
+                    catch { }
+                });
+                Serializer.Serialize(this.Recipes, this.RecipesLoc);
+                return toDelete;
+            }
+            catch
+            {
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
+            }
         }
 
         public override async Task<Category> EditCategory(Category request, ServerCallContext context)
         {
-            if (!isLoaded)
+            try
             {
-                await LoadData();
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                Category toEdit;
+                try
+                {
+                    toEdit = Categories.Single(x => x.Id == request.Id);
+                }
+                catch
+                {
+                    throw new RpcException(new Status(StatusCode.NotFound, "no category exists with this ID!"));
+                }
+                if (request.Name.Trim() == "")
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for name attribute!"));
+                }
+                CategoriesMap.Remove(toEdit.Name);
+                toEdit.Name = request.Name.Trim();
+                Serializer.Serialize(this.Categories, this.CategoriesLoc);
+                this.CategoriesMap[toEdit.Name] = Guid.Parse(toEdit.Id);
+                this.CategoriesNamesMap[Guid.Parse(toEdit.Id)] = toEdit.Name;
+                return toEdit;
             }
-            Category toEdit = Categories.Single(x => x.Id == request.Id);
-            CategoriesMap.Remove(toEdit.Name);
-            toEdit.Name = request.Name;
-            Serializer.Serialize(this.Categories, this.CategoriesLoc);
-            this.CategoriesMap[toEdit.Name] = Guid.Parse(toEdit.Id);
-            this.CategoriesNamesMap[Guid.Parse(toEdit.Id)] = toEdit.Name;
-            return toEdit;
+            catch
+            {
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
+            }
         }
 
         public void WriteInFolder(string text, string path)
@@ -100,8 +152,8 @@ namespace server.Services
         public async Task LoadData()
         {
             string mainPath = Environment.CurrentDirectory;
-            this.CategoriesLoc = $@"{mainPath}\categories.json";             
-            this.Categories =(List<Category>)Serializer.Deserialize(this.CategoriesLoc,SerializationType.ListOfCategories);
+            this.CategoriesLoc = $@"{mainPath}\categories.json";
+            this.Categories = (List<Category>)Serializer.Deserialize(this.CategoriesLoc, SerializationType.ListOfCategories);
             this.CategoriesMap = new Dictionary<string, Guid>();
             this.CategoriesNamesMap = new Dictionary<Guid, string>();
             for (int i = 0; i < this.Categories.Count; i++)

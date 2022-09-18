@@ -22,80 +22,162 @@ namespace server.Services
 
         public override async Task<RecipesList> ListRecipes(VoidRecipe request, ServerCallContext context)
         {
-
-            if (!isLoaded)
+            try
             {
-                await LoadData();
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                RecipesList response = new();
+                Recipes.ForEach(rec =>
+                {
+                    response.Recipes.Add(rec);
+                });
+                return response;
             }
-            RecipesList response = new();
-            Recipes.ForEach(rec =>
+            catch
             {
-                response.Recipes.Add(rec);
-            });
-            return response;
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
+            }
         }
         public override async Task<Recipe> CreateRecipe(RecipeToAdd request, ServerCallContext context)
         {
-            if (!isLoaded)
+            try
             {
-                await LoadData();
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                Recipe toAdd = new();
+                toAdd.Id = Guid.NewGuid().ToString();
+                toAdd.Title = request.Title.Trim();
+                if (toAdd.Title == "")
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe title!"));
+                }
+                foreach (var cat in request.Categories)
+                {
+                    toAdd.Categories.Add(cat);
+                }
+                if (toAdd.Categories.Count == 0)
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe categories!"));
+                }
+                foreach (var ins in request.Instructions)
+                {
+                    if (ins.Trim() != "")
+                        toAdd.Instructions.Add(ins);
+                }
+
+                if (toAdd.Instructions.Count == 0)
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe instructions!"));
+                }
+                foreach (var ing in request.Ingredients)
+                {
+                    if (ing.Trim() != "")
+                        toAdd.Ingredients.Add(ing);
+                }
+
+                if (toAdd.Ingredients.Count == 0)
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe ingredients!"));
+                }
+                Recipes.Add(toAdd);
+                Serializer.Serialize(this.Recipes, this.RecipesLoc);
+                return toAdd;
             }
-            Recipe toAdd = new();
-            toAdd.Id = Guid.NewGuid().ToString();
-            toAdd.Title = request.Title.Trim();
-            foreach (var cat in request.Categories)
+            catch
             {
-                toAdd.Categories.Add(cat);
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
             }
-            foreach (var ins in request.Instructions)
-            {
-                toAdd.Instructions.Add(ins);
-            }
-            foreach (var ing in request.Ingredients)
-            {
-                toAdd.Ingredients.Add(ing);
-            }
-            Recipes.Add(toAdd);
-            Serializer.Serialize(this.Recipes, this.RecipesLoc);
-            return toAdd;
         }
 
         public override async Task<Recipe> DeleteRecipe(RecipeToDelete request, ServerCallContext context)
         {
-            if (!isLoaded)
+            try
             {
-                await LoadData();
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                Recipe toDelete;
+                try
+                {
+                    toDelete = Recipes.Single(x => x.Id == request.Id);
+                }
+                catch
+                {
+                    throw new RpcException(new Status(StatusCode.NotFound, "no recipe exists with this ID!"));
+                }
+                Recipes.Remove(toDelete);
+                Serializer.Serialize(this.Recipes, this.RecipesLoc);
+                return toDelete;
             }
-            Recipe toDelete = Recipes.Single(x => x.Id == request.Id);
-            Recipes.Remove(toDelete);
-            Serializer.Serialize(this.Recipes, this.RecipesLoc);
-            return toDelete;
+            catch
+            {
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
+            }
         }
 
         public override async Task<Recipe> EditRecipe(Recipe request, ServerCallContext context)
         {
-            if (!isLoaded)
+            try
             {
-                await LoadData();
+                if (!isLoaded)
+                {
+                    await LoadData();
+                }
+                Recipe toEdit;
+                try
+                {
+                    toEdit = Recipes.Single(x => x.Id == request.Id);
+                }
+                catch
+                {
+                    throw new RpcException(new Status(StatusCode.NotFound, "no recipe exists with this ID!"));
+                }
+                toEdit.Title = request.Title.Trim();
+                if (toEdit.Title == "")
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe title!"));
+                }
+                toEdit.Categories.Clear();
+                foreach (var cat in request.Categories)
+                {
+                    toEdit.Categories.Add(cat);
+                }
+                if (toEdit.Categories.Count == 0)
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe categories!"));
+                }
+                toEdit.Instructions.Clear();
+                foreach (var ins in request.Instructions)
+                {
+                    if (ins.Trim() != "")
+                        toEdit.Instructions.Add(ins);
+                }
+                if (toEdit.Instructions.Count == 0)
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe isntructions!"));
+                }
+                toEdit.Ingredients.Clear();
+                foreach (var ing in request.Ingredients)
+                {
+                    if (ing.Trim() != "")
+                        toEdit.Ingredients.Add(ing);
+                }
+                if (toEdit.Ingredients.Count == 0)
+                {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, "no value for recipe ingredients!"));
+                }
+                Serializer.Serialize(this.Recipes, this.RecipesLoc);
+                return toEdit;
             }
-            Recipe toEdit = Recipes.Single(x => x.Id == request.Id);
-            toEdit.Categories.Clear();
-            foreach (var cat in request.Categories)
+            catch
             {
-                toEdit.Categories.Add(cat);
+                throw new RpcException(new Status(StatusCode.Internal, "something went wrong!"));
             }
-            toEdit.Instructions.Clear();
-            foreach (var ins in request.Instructions)
-            {
-                toEdit.Instructions.Add(ins);
-            }
-            toEdit.Ingredients.Clear();
-            foreach (var ing in request.Ingredients)
-            {
-                toEdit.Ingredients.Add(ing);
-            }
-            Serializer.Serialize(this.Recipes, this.RecipesLoc);
-            return toEdit;
         }
         public void WriteInFolder(string text, string path)
         {

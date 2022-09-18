@@ -45,7 +45,7 @@ namespace exercise_5_frontend.Pages
         {
             Configuration = configuration;
             _logger = logger;
-            channel = GrpcChannel.ForAddress(configuration["BaseUrl"],new GrpcChannelOptions
+            channel = GrpcChannel.ForAddress(configuration["BaseUrl"], new GrpcChannelOptions
             {
                 HttpHandler = new GrpcWebHandler(new HttpClientHandler())
             });
@@ -59,86 +59,118 @@ namespace exercise_5_frontend.Pages
         }
         public async Task ListItems()
         {
-            var reply = await categoriesClient.ListCategoriesAsync(new server.VoidCategory { });
-            foreach (var category in reply.Categories)
+            try
             {
-                this.CategoriesList.Add(category);
+                var reply = await categoriesClient.ListCategoriesAsync(new server.VoidCategory { });
+                foreach (var category in reply.Categories)
+                {
+                    this.CategoriesList.Add(category);
+                }
+                /* storing some dictionaries*/
+                //Dictionary<string, Guid> categoriesMap = new Dictionary<string, Guid>();
+                for (int i = 0; i < CategoriesList.Count; i++)
+                {
+                    //categoriesMap[categories[i].Name] = categories[i].ID;
+                    this.categoriesNamesMap[Guid.Parse(CategoriesList[i].Id)] = CategoriesList[i].Name;
+                }
+                /**** getting recipes ****/
+                var reply2 = await recipesClient.ListRecipesAsync(new server.VoidRecipe { });
+                foreach (var recipe in reply2.Recipes)
+                {
+                    this.Recipes.Add(recipe);
+                }
             }
-            /* storing some dictionaries*/
-            //Dictionary<string, Guid> categoriesMap = new Dictionary<string, Guid>();
-            for (int i = 0; i < CategoriesList.Count; i++)
+            catch
             {
-                //categoriesMap[categories[i].Name] = categories[i].ID;
-                this.categoriesNamesMap[Guid.Parse(CategoriesList[i].Id)] = CategoriesList[i].Name;
-            }
-            /**** getting recipes ****/
-            var reply2 = await recipesClient.ListRecipesAsync(new server.VoidRecipe { });
-            foreach (var recipe in reply2.Recipes)
-            {
-                this.Recipes.Add(recipe);
             }
         }
         public async Task<IActionResult> OnPostCreateRecipe()
         {
-
-            RecipeToAdd toAdd = new();
-            toAdd.Title = Title.Trim();
-
-            foreach (Guid category in Categories)
+            try
             {
-                toAdd.Categories.Add(category.ToString());
-            }
+                RecipeToAdd toAdd = new();
+                toAdd.Title = Title.Trim();
 
-            // using the method
-            String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            foreach (String s in strlist)
-            {
-                if (s.Trim() != "")
+                foreach (Guid category in Categories)
                 {
-                    toAdd.Instructions.Add(s.Trim());
+                    toAdd.Categories.Add(category.ToString());
                 }
-            }
 
-            strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            foreach (String s in strlist)
-            {
-                if (s.Trim() != "")
-                    toAdd.Ingredients.Add(s.Trim());
+                // using the method
+                String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                foreach (String s in strlist)
+                {
+                    if (s.Trim() != "")
+                    {
+                        toAdd.Instructions.Add(s.Trim());
+                    }
+                }
+
+                strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                foreach (String s in strlist)
+                {
+                    if (s.Trim() != "")
+                        toAdd.Ingredients.Add(s.Trim());
+                }
+                var reply = await recipesClient.CreateRecipeAsync(toAdd);
+                return Redirect("/recipes?ReqResult=success&Msg=your recipe has been added successfully");
             }
-            var reply = await recipesClient.CreateRecipeAsync(toAdd);
-            return Redirect("/recipes?ReqResult=success&Msg=your recipe has been added successfully");
+            catch
+            {
+                return RedirectToPage("/recipes", new { ReqResult = "failure", Msg = "something went wrong with your request .. check your data and try again", open = "add", title = Title, instructions = Instructions, ingredients = Ingredients, categories = Categories });
+            }
         }
         public async Task<IActionResult> OnPostUpdateRecipe()
         {
-            Recipe toEdit = new Recipe();
-            toEdit.Id = ID.ToString();
-            toEdit.Title = Title.Trim();
-            foreach (Guid category in Categories)
+            try
             {
-                toEdit.Categories.Add(category.ToString());
+                Recipe toEdit = new Recipe();
+                toEdit.Id = ID.ToString();
+                toEdit.Title = Title.Trim();
+                foreach (Guid category in Categories)
+                {
+                    toEdit.Categories.Add(category.ToString());
+                }
+                Instructions = Instructions.Trim();
+                String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                foreach (String s in strlist)
+                {
+                    if (s.Trim() != "")
+                        toEdit.Instructions.Add(s.Trim());
+                }
+                Ingredients = Ingredients.Trim();
+                strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                foreach (String s in strlist)
+                {
+                    if (s.Trim() != "")
+                        toEdit.Ingredients.Add(s.Trim());
+                }
+                var reply = await recipesClient.EditRecipeAsync(toEdit);
+                return Redirect("/recipes?ReqResult=success&Msg=the recipe has been updated successfully");
             }
-            Instructions = Instructions.Trim();
-            String[] strlist = Instructions.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            foreach (String s in strlist)
+            catch
             {
-                if (s.Trim() != "")
-                    toEdit.Instructions.Add(s.Trim());
+                return RedirectToPage("/recipes", new { ReqResult = "failure", Msg = "something went wrong with your request .. review your data and try again", open = "edit", title = Title, id = ID, instructions = Instructions, ingredients = Ingredients, categories = Categories }); /*+ "&instructions=" + Instructions + "&ingredients=" + Ingredients);*/
             }
-            Ingredients = Ingredients.Trim();
-            strlist = Ingredients.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            foreach (String s in strlist)
-            {
-                if (s.Trim() != "")
-                    toEdit.Ingredients.Add(s.Trim());
-            }
-            var reply = await recipesClient.EditRecipeAsync(toEdit);
-            return Redirect("/recipes?ReqResult=success&Msg=the recipe has been updated successfully");
         }
         public async Task<IActionResult> OnPostDeleteRecipe()
         {
-            var reply = await recipesClient.DeleteRecipeAsync(new RecipeToDelete { Id = ID.ToString() });
-            return Redirect("/recipes?ReqResult=success&Msg=the recipe has been deleted successfully");
-
+            try
+            {
+                var reply = await recipesClient.DeleteRecipeAsync(new RecipeToDelete { Id = ID.ToString() });
+                return Redirect("/recipes?ReqResult=success&Msg=the recipe has been deleted successfully");
+            }
+            catch
+            {
+                return RedirectToPage("/recipes",
+              new
+              {
+                  ReqResult = "failure",
+                  Msg = "something went wrong with your request .. you can retry after some seconds",
+                  open = "delete",
+                  id = ID,
+              });
+            }
         }
     }
 }

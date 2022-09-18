@@ -27,7 +27,7 @@ namespace exercise_5_frontend.Pages
         private readonly GrpcChannel channel;
         private readonly CategoriesClient client;
 
-        public CategoryModel(ILogger<IndexModel> logger, IConfiguration configuration,CategoriesClient cc)
+        public CategoryModel(ILogger<IndexModel> logger, IConfiguration configuration, CategoriesClient cc)
         {
             logger = logger;
             configuration = configuration;
@@ -45,33 +45,60 @@ namespace exercise_5_frontend.Pages
         }
         public async Task ListCategories()
         {
-            var reply = await client.ListCategoriesAsync(new server.VoidCategory { });
-            foreach (var category in reply.Categories)
+            try
             {
-                this.Categories.Add(category);
+                var reply = await client.ListCategoriesAsync(new server.VoidCategory { });
+                foreach (var category in reply.Categories)
+                {
+                    this.Categories.Add(category);
+                }
+            }
+            catch
+            {
+
             }
         }
         public async Task<IActionResult> OnPostAddCategory()
         {
-            var reply = await client.CreateCategoryAsync(new server.CategoryToAdd { Name = Name });
-            return Redirect("/Categories?ReqResult=success&Msg=your category has been added successfully");
-
+            try
+            {
+                var reply = await client.CreateCategoryAsync(new server.CategoryToAdd { Name = Name });
+                return Redirect("/Categories?ReqResult=success&Msg=your category has been added successfully");
+            }
+            catch (Exception e)
+            {
+                return Redirect("/Categories?ReqResult=failure&Msg=something went wrong with your request .. check your data and try again&name=" + Name);
+            }
         }
         public async Task<IActionResult> OnPostUpdateCategory()
         {
-            server.Category toEdit = new ();
-            toEdit.Id = ID.ToString();
-            toEdit.Name = Name;
-            var reply = await client.EditCategoryAsync(toEdit);
-            return Redirect("/Categories?ReqResult=success&Msg=the category has been updated successfully");
+            try
+            {
+                server.Category toEdit = new();
+                toEdit.Id = ID.ToString();
+                toEdit.Name = Name;
+                var reply = await client.EditCategoryAsync(toEdit);
+                return Redirect("/Categories?ReqResult=success&Msg=the category has been updated successfully");
+            }
+            catch (Exception e)
+            {
+                return Redirect("/Categories?ReqResult=failure&Msg=something went wrong with your request .. review your data and try again&name=" + Name + "&id=" + ID + "&open=edit");
+
+            }
         }
         public async Task<IActionResult> OnPostDeleteCategory()
         {
-            server.CategoryToDelete toDelete = new();
-            toDelete.Id = ID.ToString();
-            var reply = await client.DeleteCategoryAsync(toDelete);
-            return Redirect("/Categories?ReqResult=success&Msg=the category has been deleted successfully");
-           
+            try
+            {
+                server.CategoryToDelete toDelete = new();
+                toDelete.Id = ID.ToString();
+                var reply = await client.DeleteCategoryAsync(toDelete);
+                return Redirect("/Categories?ReqResult=success&Msg=the category has been deleted successfully");
+            }
+            catch (Exception e)
+            {
+                return Redirect("/Categories?ReqResult=failure&Msg=something went wrong with your request .. you can retry after some seconds&id=" + ID + "&open=delete");
+            }
         }
     }
 }
